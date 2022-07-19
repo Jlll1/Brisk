@@ -4,6 +4,7 @@
     <UseLocalSutil>False</UseLocalSutil>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Components/Card.fs" />
     <Compile Include="Pages/Home.fs" />
     <Compile Include="Pages/Catalog.fs" />
     <Compile Include="App.fs" />
