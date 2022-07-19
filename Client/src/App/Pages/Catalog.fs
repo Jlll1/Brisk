@@ -5,5 +5,5 @@ open Sutil
 let view () =
   Html.div [
     Card.view ()
-    Pagination.view ()
+    Pagination.view 5
   ]
