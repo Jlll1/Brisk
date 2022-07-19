@@ -1,4 +1,9 @@
 module Pages.Catalog
 
+open Sutil
+
 let view () =
-  Card.view ()
+  Html.div [
+    Card.view ()
+    Pagination.view ()
+  ]
