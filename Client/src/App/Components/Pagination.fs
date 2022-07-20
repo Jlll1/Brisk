@@ -45,7 +45,7 @@ module private Model =
     member x.SetValue newValue =
       let (PageIndex i) = x
       match i.PageCount >= newValue && newValue >= 1 with
-      | true -> Some (PageIndex { Value = newValue ; PageCount = i.PageCount })
+      | true -> Some (PageIndex { i with PageCount = newValue })
       | false -> None
 
   type Model = { CurrentPage : PageIndex }
