@@ -30,28 +30,21 @@ let private style = [
 
 
 module private Model =
-  type private pageIndex =
-    { Value     : int
-      PageCount : int }
-  type PageIndex =
+  type private pageCount = { Value : int }
+  type PageCount =
     private
-    | PageIndex of pageIndex
-    member x.PageCount =
-      let (PageIndex i) = x
-      i.PageCount
+    | PageCount of pageCount
     member x.Value =
-      let (PageIndex i) = x
+      let (PageCount i) = x
       i.Value
-    member x.SetValue newValue =
-      let (PageIndex i) = x
-      match i.PageCount >= newValue && newValue >= 1 with
-      | true -> Some (PageIndex { i with PageCount = newValue })
-      | false -> None
 
-  type Model = { CurrentPage : PageIndex }
+  type Model =
+    { CurrentPage : int
+      TotalPages  : PageCount }
 
   let init pageCount () =
-    { CurrentPage = PageIndex { Value = 1 ; PageCount = pageCount } }
+    { CurrentPage = 1
+      TotalPages = PageCount { Value = pageCount } }
 open Model
 
 type private Msg =
@@ -60,30 +53,30 @@ type private Msg =
   | GoToFirstPage
   | GoToLastPage
 
-let private updateCurrentPage m newPageIndex =
-      match newPageIndex with
-      | Some pi -> { m with CurrentPage = pi }
-      | None -> m
-
 let private update msg model =
-  match msg with
-  | IncrementPageIndex ->
-        model.CurrentPage.Value + 1
-        |> model.CurrentPage.SetValue
-        |> updateCurrentPage model
-  | DecrementPageIndex -> 
-        model.CurrentPage.Value - 1
-        |> model.CurrentPage.SetValue
-        |> updateCurrentPage model
-  | GoToFirstPage ->
-        model.CurrentPage.SetValue 1
-        |> updateCurrentPage model
-  | GoToLastPage ->
-        model.CurrentPage.PageCount
-        |> model.CurrentPage.SetValue
-        |> updateCurrentPage model
+  let updateModel msg m =
+    match msg with
+    | IncrementPageIndex ->
+      { m with CurrentPage = model.CurrentPage + 1 }
+    | DecrementPageIndex ->
+      { m with CurrentPage = model.CurrentPage - 1 }
+    | GoToFirstPage ->
+      { m with CurrentPage = 1 }
+    | GoToLastPage ->
+      { m with CurrentPage = model.TotalPages.Value }
 
-let private getCurrentPage (m : Model.Model) = m.CurrentPage.Value
+  let validateModelChanges m =
+    let currentPageIsBetween1AndTotalPages =
+      1 <= m.CurrentPage && m.CurrentPage <= m.TotalPages.Value
+
+    if currentPageIsBetween1AndTotalPages
+    then m
+    else model
+
+  model |> updateModel msg |> validateModelChanges
+
+
+let private getCurrentPage (m : Model.Model) = m.CurrentPage
 
 let view pageCount =
   let model, dispatch = () |> Store.makeElmishSimple (init pageCount) update ignore
