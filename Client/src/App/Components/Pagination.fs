@@ -47,13 +47,16 @@ module private Model =
       TotalPages = PageCount { Value = pageCount } }
 open Model
 
+type PaginationEvent =
+  | CurrentPageChanged of int
+
 type private Msg =
   | IncrementPageIndex
   | DecrementPageIndex
   | GoToFirstPage
   | GoToLastPage
 
-let private update msg model =
+let private update publishEvent msg model =
   let updateModel msg m =
     match msg with
     | IncrementPageIndex ->
@@ -73,13 +76,18 @@ let private update msg model =
     then m
     else model
 
-  model |> updateModel msg |> validateModelChanges
+  let publishEvents m =
+    if m.CurrentPage <> model.CurrentPage
+    then publishEvent (CurrentPageChanged m.CurrentPage)
+    m
+
+  model |> updateModel msg |> validateModelChanges |> publishEvents
 
 
 let private getCurrentPage (m : Model.Model) = m.CurrentPage
 
-let view pageCount =
-  let model, dispatch = () |> Store.makeElmishSimple (init pageCount) update ignore
+let view onChange pageCount =
+  let model, dispatch = () |> Store.makeElmishSimple (init pageCount) (update onChange) ignore
 
   Html.nav [
     Html.ul [
